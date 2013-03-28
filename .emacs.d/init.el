@@ -33,13 +33,32 @@
 (add-to-load-path "elisp" "conf" "public_repos")
 
 ;;; ----------------------------------------------------------------------------
-;;; 言語設定
+;;; package.el
+;;; パッケージ管理システム。Emacs24からは標準搭載されるため削除すること
+;;; ----------------------------------------------------------------------------
+;; package.el の設定
+(when (require 'package nil t)
+  ;; パッケージリポジトリにMarmaladeと開発者運営のELPAを追加
+  (add-to-list 'package-archives
+               '("marmalade" . "http://marmalade-repo.org/packages/"))
+  (add-to-list 'package-archives '("ELPA" . "http://tromey.com/elpa/"))
+  ;; インストールしたパッケージにロードパスを通して読み込む
+  (package-initialize))
+
+;;; ----------------------------------------------------------------------------
+;;; 言語設定, 文字コード設定
 ;;; ----------------------------------------------------------------------------
 
 ;; 言語を日本語にする
 (set-language-environment 'Japanese)
 ;; 文字コードをUTF-8にする
 (prefer-coding-system 'utf-8)
+
+;; TABの表示幅を4に。初期値は8
+(setq-default tab-width 4)
+
+;; インデントにタブ文字を使用しない（スペースを用いる）
+(setq-default indent-tabs-mode nil)
 
 ;;; ----------------------------------------------------------------------------
 ;;; キーバインド
@@ -86,10 +105,23 @@
       (format "%%f - Emacs@%s" (system-name)))
 
 ;; バックアップを残さない
-(setq make-backup-files nil)
+;(setq make-backup-files nil) ; 折角だから使ってみよう
 
 ;; 終了時にオートセーブファイルを消す
-(setq delete-auto-save-files t)
+;(setq delete-auto-save-files t) ; 折角だから使ってみよう
+
+;; ファイルが #! から始まる場合、+xを付けて保存する
+(add-hook 'after-save-hook
+	  'executable-make-buffer-file-executable-if-script-p)
+
+;; Eldocによるエコーエリアへの表示
+;; emacs-lisp-modeのフックをセット
+(add-hook 'emacs-lisp-mode-hook
+	  '(lambda ()
+	     (when (require 'eldoc nil t)
+	       (setq eldoc-idle-delay 0.2)
+	       (setq eldoc-echo-area-use-multiline-p t)
+	       (turn-on-eldoc-mode))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; モード設定
@@ -113,6 +145,22 @@
        '(("\\.h$" . c-mode))
        '(("\\.cpp$" . c++-mode))
        auto-mode-alist))
+
+;;; ----------------------------------------------------------------------------
+;;; auto-install
+;;; rubikitch氏(http://d.hatena.ne.jp/rubikitch/)
+;;; ----------------------------------------------------------------------------
+;; auto-installの設定
+(when (require 'auto-install nil t)
+  ;; インストールディレクトリの設定。初期値は~/.emacs.d/auto-install/
+  (setq auto-install-directory "~/.emacs.d/elisp/")
+  ;; EmacsWikiに登録されているelispの名前を取得する
+  (auto-install-update-emacswiki-package-name t)
+  ;; 必要であればプロキシの設定を行う
+  ;; (setq url-proxy-services '(("http" . "localhost:8339")))
+  ;; install-elisp の関数を利用可能にする
+  (auto-install-compatibility-setup))
+
 
 ;;; ----------------------------------------------------------------------------
 ;;; 環境毎の設定

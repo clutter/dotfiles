@@ -29,3 +29,8 @@ fi
 if [ -d ~/.cargo ] ; then
     export PATH="$HOME/.cargo/bin:$PATH"
 fi
+
+## rbenv PATH
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"
